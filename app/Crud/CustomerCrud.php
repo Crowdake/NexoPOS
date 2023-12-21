@@ -219,8 +219,11 @@ class CustomerCrud extends CrudService
                             'type' => 'select',
                             'options' => Helper::kvToJsOptions([
                                 '' => __( 'Not Defined' ),
-                                'male' => __( 'Male' ),
-                                'female' => __( 'Female' ),
+                                'restaurantes' => __( 'Restaurantes' ),
+                                'baresycantinas' => __( 'Bares y cantinas' ),
+                                'panaderias' => __( 'Panaderías y reposterías' ),
+                                'cafeterias' => __( 'Cafeterías' ),
+                                'comedores' => __( 'Comedores industriales' ),
                             ]),
                             'label' => __( 'Gender' ),
                             'name' => 'gender',
@@ -622,9 +625,15 @@ class CustomerCrud extends CrudService
         $entry->email = $entry->email ?: __( 'Not Defined' );
 
         switch ( $entry->gender ) {
-            case 'male': $entry->gender = __( 'Male' );
+            case 'restaurantes': $entry->gender = __( 'Restaurantes' );
                 break;
-            case 'female': $entry->gender = __( 'Female' );
+            case 'baresycantinas': $entry->gender = __( 'Bares y cantinas' );
+                break;
+            case 'panaderias': $entry->gender = __( 'Panaderías y reposterías' );
+                break;
+            case 'cafeterias': $entry->gender = __( 'Cafeterías' );
+                break;
+            case 'comedores': $entry->gender = __( 'Comedores industriales' );
                 break;
             default: $entry->gender = __( 'Not Defined' );
                 break;
