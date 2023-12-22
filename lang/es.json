@@ -2197,6 +2197,7 @@
     "Remaining :": "Restante:",
     "Instalments:": "Cuotas:",
     "Cash Register : {register}": "Caja registradora: {register}",
+    "Your don't have enough permission to see this page.": "No tienes los permisos para ver esta página.",
     "You don't have the right to edit the purchase price.": "No tienes derecho a editar el precio de compra.",
     "You're not allowed to add a discount on the product.": "No tienes permitido agregar un descuento al producto.",
     "You're not allowed to add a discount on the cart.": "No tienes permitido agregar un descuento al carrito.",
