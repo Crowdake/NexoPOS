@@ -225,21 +225,21 @@ class Setup
          * for the system
          */
         $paymentType = new PaymentType;
-        $paymentType->label = __( 'Cash' );
+        $paymentType->label = __( 'Efectivo' );
         $paymentType->identifier = 'cash-payment';
         $paymentType->readonly = true;
         $paymentType->author = $user->id;
         $paymentType->save();
 
         $paymentType = new PaymentType;
-        $paymentType->label = __( 'Bank Payment' );
+        $paymentType->label = __( 'Transacción bancaria' );
         $paymentType->identifier = 'bank-payment';
         $paymentType->readonly = true;
         $paymentType->author = $user->id;
         $paymentType->save();
 
         $paymentType = new PaymentType;
-        $paymentType->label = __( 'Customer Account' );
+        $paymentType->label = __( 'Cuenta de cliente' );
         $paymentType->identifier = 'account-payment';
         $paymentType->readonly = true;
         $paymentType->author = $user->id;
