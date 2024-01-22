@@ -35,7 +35,7 @@ use App\Classes\Hook;
                         <td colspan="2" class="p-2 border-b border-gray-700">
                             <span class="">{{ $product->name }} (x{{ $product->quantity }})</span>
                             <br>
-                            <span class="text-xs text-gray-600">{{ $product->unit->name }}</span>
+                            <span class="text-xs">{{ $product->unit->name }}</span>
                         </td>
                         <td class="p-2 border-b border-gray-800 text-right">{{ ns()->currency->define( $product->total_price ) }}</td>
                     </tr>
