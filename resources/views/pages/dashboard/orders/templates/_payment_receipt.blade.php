@@ -23,24 +23,28 @@ use App\Classes\Hook;
         </div>
         <div class="table w-full">
             <table class="w-full">
-                <thead>
-                    <tr class="font-semibold">
-                        <td colspan="2" class="p-2 border-b border-gray-800">{{ __( 'Product' ) }}</td>
-                        <td class="p-2 border-b border-gray-800 text-right">{{ __( 'Total' ) }}</td>
-                    </tr>
-                </thead>
-                <tbody class="text-sm">
-                    @foreach( Hook::filter( 'ns-receipt-products', $order->combinedProducts ) as $product )
-                    <tr>
-                        <td colspan="2" class="p-2 border-b border-gray-700">
-                            <span class="">{{ $product->name }} (x{{ $product->quantity }})</span>
-                            <br>
-                            <span class="text-xs">{{ $product->unit->name }}</span>
-                        </td>
-                        <td class="p-2 border-b border-gray-800 text-right">{{ ns()->currency->define( $product->total_price ) }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
+            <thead>
+    <tr class="font-semibold">
+        <td class="p-2 border-b border-gray-800">{{ __( 'Product' ) }}</td>
+        <td class="p-2 border-b border-gray-800">{{ __( 'Quantity' ) }}</td>
+        <td class="p-2 border-b border-gray-800 text-right">{{ __( 'Total' ) }}</td>
+    </tr>
+</thead>
+<tbody class="text-sm">
+    @foreach( Hook::filter( 'ns-receipt-products', $order->combinedProducts ) as $product )
+    <tr>
+        <td class="p-2 border-b border-gray-700">
+            <span>{{ $product->name }}</span>
+            <br>
+            <span class="text-xs">{{ $product->unit->name }}</span>
+        </td>
+        <td class="p-2 border-b border-gray-700 text-left"> {{-- Cambiado de "text-right" a "text-left" --}}
+            <span>x{{ $product->quantity }}</span>
+        </td>
+        <td class="p-2 border-b border-gray-800 text-right">{{ ns()->currency->define( $product->total_price ) }}</td>
+    </tr>
+    @endforeach
+</tbody>
                 <tbody>
                     <tr>
                         <td colspan="2" class="p-2 border-b border-gray-800 text-sm font-semibold">{{ __( 'Sub Total' ) }}</td>
