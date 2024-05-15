@@ -841,113 +841,125 @@ class ReportService
         ];
     }
 
-    public function getProductsReports( $start, $end, $user_id = null )
-    {
-        $request = Order::paymentStatus( Order::PAYMENT_PAID )
-            ->from( $start )
-            ->to( $end );
+    public function getProductsReports($start, $end, $user_id = null)
+{
+    $request = Order::paymentStatusIn([
+            Order::PAYMENT_PAID, 
+            Order::PAYMENT_UNPAID, 
+            Order::PAYMENT_REFUNDED, 
+            Order::PAYMENT_PARTIALLY
+        ])
+        ->from($start)
+        ->to($end);
 
-        if ( ! empty( $user_id ) ) {
-            $request = $request->where( 'author', $user_id );
-        }
-
-        $orders = $request->with( 'products' )
-            ->get();
-
-        $summary = $this->getSalesSummary( $orders );
-
-        $products = $orders->map( fn( $order ) => $order->products )->flatten();
-
-        $productsIds = $products->map( fn( $product ) => $product->product_id )->unique();
-
-        return [
-            'result' => $productsIds->map( function ( $id ) use ( $products ) {
-                $product = $products->where( 'product_id', $id )->first();
-                $filtredProdcuts = $products->where( 'product_id', $id )->all();
-
-                $summable = [ 'quantity', 'discount', 'wholesale_tax_value', 'sale_tax_value', 'tax_value', 'total_price_without_tax', 'total_price', 'total_price_with_tax', 'total_purchase_price' ];
-                foreach ( $summable as $key ) {
-                    $product->$key = collect( $filtredProdcuts )->sum( $key );
-                }
-
-                return $product;
-            })->values(),
-            'summary' => $summary,
-        ];
+    if (!empty($user_id)) {
+        $request = $request->where('author', $user_id);
     }
 
-    public function getCategoryReports( $start, $end, $orderAttribute = 'name', $orderDirection = 'desc', $user_id = null )
-    {
-        $request = Order::paymentStatus( Order::PAYMENT_PAID )
-            ->from( $start )
-            ->to( $end );
+    $orders = $request->with('products')
+        ->get();
 
-        if ( ! empty( $user_id ) ) {
-            $request = $request->where( 'author', $user_id );
-        }
+    $summary = $this->getSalesSummary($orders);
 
-        $orders = $request->with( 'products' )->get();
+    $products = $orders->map(fn ($order) => $order->products)->flatten();
+
+    $productsIds = $products->map(fn ($product) => $product->product_id)->unique();
+
+    return [
+        'result' => $productsIds->map(function ($id) use ($products) {
+            $product = $products->where('product_id', $id)->first();
+            $filtredProdcuts = $products->where('product_id', $id)->all();
+
+            $summable = ['quantity', 'discount', 'wholesale_tax_value', 'sale_tax_value', 'tax_value', 'total_price_without_tax', 'total_price', 'total_price_with_tax', 'total_purchase_price'];
+            foreach ($summable as $key) {
+                $product->$key = collect($filtredProdcuts)->sum($key);
+            }
+
+            return $product;
+        })->values(),
+        'summary' => $summary,
+    ];
+}
+
+
+public function getCategoryReports($start, $end, $orderAttribute = 'name', $orderDirection = 'desc', $user_id = null)
+{
+    $request = Order::paymentStatusIn([
+            Order::PAYMENT_PAID,
+            Order::PAYMENT_UNPAID,
+            Order::PAYMENT_REFUNDED,
+            Order::PAYMENT_PARTIALLY
+        ])
+        ->from($start)
+        ->to($end);
+
+    if (!empty($user_id)) {
+        $request = $request->where('author', $user_id);
+    }
+
+    $orders = $request->with('products')->get();
+
+    /**
+     * We'll pull the sales
+     * summary
+     */
+    $summary = $this->getSalesSummary($orders);
+
+    $products = $orders->map(fn ($order) => $order->products)->flatten();
+    $category_ids = $orders->map(fn ($order) => $order->products->map(fn ($product) => $product->product_category_id));
+
+    $unitIds = $category_ids->flatten()->unique()->toArray();
+
+    /**
+     * We'll get all category that are listed
+     * on the product sold
+     */
+    $categories = ProductCategory::whereIn('id', $unitIds)
+        ->orderBy($orderAttribute, $orderDirection)
+        ->get();
+
+    /**
+     * That will sum all the total prices
+     */
+    $categories->each(function ($category) use ($products) {
+        $rawProducts = collect($products->where('product_category_id', $category->id)->all())->values();
+
+        $products = [];
 
         /**
-         * We'll pull the sales
-         * summary
+         * this will merge similar products
+         * to summarize them.
          */
-        $summary = $this->getSalesSummary( $orders );
-
-        $products = $orders->map( fn( $order ) => $order->products )->flatten();
-        $category_ids = $orders->map( fn( $order ) => $order->products->map( fn( $product ) => $product->product_category_id ) );
-
-        $unitIds = $category_ids->flatten()->unique()->toArray();
-
-        /**
-         * We'll get all category that are listed
-         * on the product sold
-         */
-        $categories = ProductCategory::whereIn( 'id', $unitIds )
-            ->orderBy( $orderAttribute, $orderDirection )
-            ->get();
-
-        /**
-         * That will sum all the total prices
-         */
-        $categories->each( function ( $category ) use ( $products ) {
-            $rawProducts = collect( $products->where( 'product_category_id', $category->id )->all() )->values();
-
-            $products = [];
-
-            /**
-             * this will merge similar products
-             * to summarize them.
-             */
-            $rawProducts->each( function ( $product ) use ( &$products ) {
-                if ( isset( $products[ $product->product_id ] ) ) {
-                    $products[ $product->product_id ][ 'quantity' ] += $product->quantity;
-                    $products[ $product->product_id ][ 'tax_value' ] += $product->tax_value;
-                    $products[ $product->product_id ][ 'discount' ] += $product->discount;
-                    $products[ $product->product_id ][ 'total_price' ] += $product->total_price;
-                } else {
-                    $products[ $product->product_id ] = array_merge( $product->toArray(), [
-                        'quantity' => $product->quantity,
-                        'tax_value' => $product->tax_value,
-                        'discount' => $product->discount,
-                        'total_price' => $product->total_price,
-                    ]);
-                }
-            });
-
-            $category->products = array_values( $products );
-
-            $category->total_tax_value = collect( $category->products )->sum( 'tax_value' );
-            $category->total_price = collect( $category->products )->sum( 'total_price' );
-            $category->total_discount = collect( $category->products )->sum( 'discount' );
-            $category->total_sold_items = collect( $category->products )->sum( 'quantity' );
+        $rawProducts->each(function ($product) use (&$products) {
+            if (isset($products[$product->product_id])) {
+                $products[$product->product_id]['quantity'] += $product->quantity;
+                $products[$product->product_id]['tax_value'] += $product->tax_value;
+                $products[$product->product_id]['discount'] += $product->discount;
+                $products[$product->product_id]['total_price'] += $product->total_price;
+            } else {
+                $products[$product->product_id] = array_merge($product->toArray(), [
+                    'quantity' => $product->quantity,
+                    'tax_value' => $product->tax_value,
+                    'discount' => $product->discount,
+                    'total_price' => $product->total_price,
+                ]);
+            }
         });
 
-        return [
-            'result' => $categories->toArray(),
-            'summary' => $summary,
-        ];
-    }
+        $category->products = array_values($products);
+
+        $category->total_tax_value = collect($category->products)->sum('tax_value');
+        $category->total_price = collect($category->products)->sum('total_price');
+        $category->total_discount = collect($category->products)->sum('discount');
+        $category->total_sold_items = collect($category->products)->sum('quantity');
+    });
+
+    return [
+        'result' => $categories->toArray(),
+        'summary' => $summary,
+    ];
+}
+
 
     /**
      * Will returns the details for a specific cashier
