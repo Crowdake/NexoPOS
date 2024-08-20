@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
  * @property int $author
  * @property string $identifier
  * @property string $uuid
+ * @property string $nota
  */
 class OrderPayment extends NsModel
 {

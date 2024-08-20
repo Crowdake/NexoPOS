@@ -52,6 +52,7 @@
                 <ul>
                     <li v-for="payment of order.payments" :key="payment.id" class="p-2 flex items-center justify-between text-shite border elevation-surface mb-2">
                         <span>{{ paymentsLabels[ payment.identifier ] || __( 'Unknown' ) }}</span>
+                        <span>{{ payment.nota | nota }}</span>
                         <span>{{ payment.value | currency }}</span>
                     </li>
                 </ul>

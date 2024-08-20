@@ -23,7 +23,15 @@ class OrderPaymentFields extends FieldsService
 
                     return $payment;
                 }),
+                
             ],
+            [
+                'label' => __( 'Nota' ),
+                'description' => __( 'nota adicional de pago.' ),
+                'validation' => '',
+                'name' => 'nota',
+                'type' => 'text',
+            ]
         ];
 
         return $fields;

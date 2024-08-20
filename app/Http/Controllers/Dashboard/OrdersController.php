@@ -308,6 +308,7 @@ class OrdersController extends DashboardController
         return $this->ordersService->makeOrderSinglePayment([
             'identifier' => $request->input( 'identifier' ),
             'value' => $request->input( 'value' ),
+            'nota' => $request->input( 'nota' ),
         ], $order );
     }
 

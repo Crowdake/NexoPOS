@@ -832,6 +832,7 @@ class OrdersService
         $orderPayment->identifier = $payment['identifier'];
         $orderPayment->value = $this->currencyService->getRaw( $payment['value'] );
         $orderPayment->author = $order->author ?? Auth::id();
+        $orderPayment->nota = $payment['nota'] ?? null;
         $orderPayment->save();
 
         OrderAfterPaymentCreatedEvent::dispatch( $orderPayment, $order );
