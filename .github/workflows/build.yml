@@ -29,7 +29,7 @@ jobs:
           REMOTE_HOST: ${{ secrets.HOST_DNS }}
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: "/var/www/html/NexoPOS"
-          RSYNC_OPTIONS: "--rsync-path='sudo rsync' --exclude 'node_modules' --exclude 'storage' --exclude '.git' --exclude '.env'"
+          RSYNC_OPTIONS: "--rsync-path='sudo rsync' --exclude 'node_modules' --exclude 'storage' --exclude '.git' --exclude '.env' --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r"
 
       - name: Run Laravel Commands on EC2
         uses: appleboy/ssh-action@master
