@@ -30,14 +30,13 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo apt -y update
+            sudo apt update
             sudo apt install -y apache2
             sudo systemctl start apache2
             sudo systemctl enable apache2
-            cd /home
-            ls
-            cd ubuntu
-            sudo yum install nodejs npm -y
+            curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+            sudo apt install -y nodejs
+            cd /home/ubuntu
             npm install
             sudo npm run build
             cd build
