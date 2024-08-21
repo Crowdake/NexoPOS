@@ -19,7 +19,19 @@ jobs:
         run: |
           composer install --no-interaction --prefer-dist --optimize-autoloader
           npm install
+
+      - name: Compile Assets
+        run: |
           npm run prod
+
+      - name: Set Permissions to ubuntu:ubuntu
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo chown -R ubuntu:ubuntu /var/www/html/NexoPOS
 
       - name: Deploy to EC2
         uses: easingthemes/ssh-deploy@v2.1.5
@@ -38,12 +50,10 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /var/www/html/
-            sudo chown -R ubuntu:ubuntu /var/www/html/NexoPOS
-            cd NexoPOS
+            cd /var/www/html/NexoPOS
             composer dump-autoload
             php artisan key:generate
             php artisan storage:link
-            sudo chown -R www-data:www-data storage bootstrap/cache
-            sudo chmod -R 775 storage bootstrap/cache
+            sudo chown -R www-data:www-data /var/www/html/NexoPOS
+            sudo chmod -R 755 /var/www/html/NexoPOS
             sudo systemctl restart apache2
