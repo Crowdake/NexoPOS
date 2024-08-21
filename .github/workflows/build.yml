@@ -1,44 +1,45 @@
-name: Build Frontend Assets
+name: Deploy Laravel App
 
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+
 jobs:
   deploy:
-    name: Push to EC2
+    name: Deploy to EC2
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
-      - name: Deploy to my EC2 instance
+      - name: Install Dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+          npm install
+          npm run prod
+
+      - name: Deploy to EC2
         uses: easingthemes/ssh-deploy@v2.1.5
         env:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
           SOURCE: "./"
           REMOTE_HOST: ${{ secrets.HOST_DNS }}
           REMOTE_USER: ${{ secrets.USERNAME }}
-          TARGET: ${{ secrets.TARGET_DIR }}
+          TARGET: "/var/www/html/NexoPOS"
 
-      - name: Executing remote ssh commands using ssh key
+      - name: Run Laravel Commands on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST_DNS }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo apt update
-            sudo apt install -y apache2
-            sudo systemctl start apache2
-            sudo systemctl enable apache2
-            curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-            sudo apt install -y nodejs
-            cd /home/ubuntu
-            npm install
-            sudo npm run build
-            cd build
-            sudo mv -f * /var/www/html/NexoPOS
+            cd /var/www/html/NexoPOS
+            composer dump-autoload
+            php artisan key:generate
+            php artisan storage:link
+            php artisan migrate --force
             sudo systemctl restart apache2
