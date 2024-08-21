@@ -2604,19 +2604,23 @@ class OrdersService
      * @return Collection
      */
     public function getSoldStock( $startDate, $endDate )
-    {
-        $rangeStarts = Carbon::parse( $startDate )->toDateTimeString();
-        $rangeEnds = Carbon::parse( $endDate )->toDateTimeString();
+{
+    $rangeStarts = Carbon::parse( $startDate )->toDateTimeString();
+    $rangeEnds = Carbon::parse( $endDate )->toDateTimeString();
 
-        $products = OrderProduct::whereHas( 'order', function( Builder $query ) {
-                $query->where( 'payment_status', Order::PAYMENT_PAID );
-            })
-            ->where( 'created_at', '>=', $rangeStarts )
-            ->where( 'created_at', '<=', $rangeEnds )
-            ->get();
+    $products = OrderProduct::whereHas( 'order', function( Builder $query ) {
+            $query->whereIn('payment_status', [
+                Order::PAYMENT_PAID,
+                Order::PAYMENT_UNPAID,
+                Order::PAYMENT_PARTIALLY
+            ]);
+        })
+        ->where( 'created_at', '>=', $rangeStarts )
+        ->where( 'created_at', '<=', $rangeEnds )
+        ->get();
 
-        return $products;
-    }
+    return $products;
+}
 
     public function trackOrderCoupons( Order $order )
     {
